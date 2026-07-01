@@ -63,7 +63,7 @@ console.log(JSON.stringify({ ok: true, instance: inst.id, w: inst.frame.width, h
 ```
 
 - `lib` id `C4648B33-1215-43AD-851E-D785ECD1113D` = **Apple iOS 27 UI Kit** (re-resolve by `l.name.includes('iOS')` if the id changes).
-- Build chrome first (status bar → nav/large-title bar → tab bar/toolbar), then content (list rows, controls), then overlays (sheets, alerts) as separate artboards.
+- **Study a kit `Examples/…` of the layout first**, then mirror its component recipe; build navigation & structure first (status bar → nav/large-title bar → tab bar/toolbar → sidebar), then content (list rows, controls), then overlays (sheets, alerts) as separate artboards. **Which fields each component exposes and how to set them lives in [`component-fields.md`](component-fields.md)** — read it before composing.
 - Match `…/Light/…` symbols to a Light artboard; duplicate + swap to `…/Dark/…` for Dark.
 
 ## 3. Set overrides (text, SF Symbol, value, state) — don't detach
@@ -81,7 +81,7 @@ console.log(JSON.stringify({ ok: !!o }))
 
 - Get `PREFIX` (`commonOverrideIDPrefix`) from `get_symbol_overrides` (`{targetDocumentID, symbolInstanceID, kind:'all'}`).
 - Property values: `stringValue` (text), `image` (`{path}`/`{base64}`), `symbolID` (swap nested symbol), `textStyle`/`layerStyle` (shared-style id), color props (`textColor`, `color:fill-0`, …) accept a **Swatch** (preferred) or `#hex`.
-- SF Symbol glyphs ride on nested symbol overrides / image slots — use the kit's symbol overrides, never paste codepoints.
+- SF Symbol glyphs ride on nested symbol overrides / image slots — use the kit's symbol overrides, never paste codepoints. For a specific icon, if the **`sfsymbols` MCP** is available (optional local server — [github.com/svedm/sfsymbols-mcp](https://github.com/svedm/sfsymbols-mcp); probe for `mcp__sfsymbols__*`, install if absent): `export_symbol{name}` → SVG → `ShapePath.fromSVGPath(d)`, recolor + size in Sketch; otherwise use the Swift-render fallback. Full pipeline in [`component-fields.md`](component-fields.md) §4.
 
 ## 4. Apply design-system tokens (see sketch-library.md)
 
