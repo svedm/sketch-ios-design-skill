@@ -24,7 +24,7 @@
 //     to resolve (instead of silently building a broken screen).
 //   • The Selected-state id is NOT hardcoded — harvested at runtime, so it is
 //     correct in any user's document.
-//   • Icons: SPEC names SF Symbols (e.g. 'ferry.fill'). There are NO bundled image
+//   • Icons: SPEC names SF Symbols (e.g. 'house.fill'). There are NO bundled image
 //     assets. Before submitting, resolve each name via the `sfsymbols` MCP into the
 //     ICONS map (agent-side — the MCP isn't callable from run_code); icons render as
 //     recolorable vectors via ShapePath.fromSVGPath. Unresolved names -> MISS.icons,
@@ -36,33 +36,37 @@ const page = doc.selectedPage
 
 // ============================ SPEC (edit per screen) ============================
 const SPEC = {
-  artboard: { name: 'Home — iPad — Light', x: 0, y: 0, w: 1210, h: 834, bg: '#F2F5F8' },
-  statusApp: 'FreqLab',
+  // EXAMPLE data — a throwaway placeholder showing the schema. Replace the whole block
+  // with your screen; nothing here is app-specific. Colors default to iOS neutrals;
+  // set `tint` to rebrand.
+  artboard: { name: 'Example — iPad — Light', x: 0, y: 0, w: 1210, h: 834, bg: '#F2F2F7' },
+  tint: '#007AFF',          // accent for icons + the selected sidebar row
+  statusApp: 'My App',      // app-menu label in the status bar
   sidebar: {
-    header: 'FreqLab',
+    header: 'My App',
     top: [
-      { title: 'Home',       icon: 'house.fill', selected: true },
-      { title: 'Airplanes',  icon: 'airplane',   badge: '7' },
-      { title: 'Ships',      icon: 'ferry.fill' },
-      { title: 'Manual SDR', icon: 'antenna.radiowaves.left.and.right' }
+      { title: 'Home',     icon: 'house.fill',     selected: true },
+      { title: 'Library',  icon: 'square.stack',   badge: '3' },
+      { title: 'Browse',   icon: 'square.grid.2x2' },
+      { title: 'Activity', icon: 'bell' }
     ],
     bottom: [ { title: 'Settings', icon: 'gearshape' } ]
   },
   navTitle: 'Home',
-  banner: {
+  banner: {                 // optional bespoke status card — omit the whole `banner` key to skip it
     dot: '#34C759',
-    title: 'Receiving · Airplanes',
-    mono: '192.168.1.10:1234 · 1090 MHz · 7 aircraft',
+    title: 'Status headline',
+    mono: 'secondary · mono · readout',
     pill: 'LIVE'
   },
   sections: [
-    { header: 'START RECEIVING', rows: [
-      { title: 'Airplanes',  detail: '7 in range',        icon: 'airplane' },
-      { title: 'Ships',      detail: 'Tap to start',      icon: 'ferry.fill' },
-      { title: 'Manual SDR', detail: 'Tune any frequency', icon: 'antenna.radiowaves.left.and.right' }
+    { header: 'SECTION ONE', rows: [
+      { title: 'First item',  detail: 'value', icon: 'star' },
+      { title: 'Second item', detail: 'value', icon: 'bookmark' },
+      { title: 'Third item',  detail: 'value', icon: 'clock' }
     ]},
-    { header: 'LEARN', rows: [
-      { title: 'New to SDR? Start here', detail: 'About 2 min', icon: 'lightbulb' }
+    { header: 'SECTION TWO', rows: [
+      { title: 'Fourth item', detail: 'value', icon: 'questionmark.circle' }
     ]}
   ]
 }
@@ -71,13 +75,22 @@ const SPEC = {
 // SPEC names SF Symbols. The `sfsymbols` MCP is NOT callable from run_code, so BEFORE
 // submitting: for each symbol name used in SPEC, call mcp__sfsymbols__export_symbol{name},
 // take the SVG `<path d="…">`, and add it here — only this screen's handful:
-//   const ICONS = { 'ferry.fill': { d: 'M85…Z' }, 'airplane': { d: '…' }, … }
+//   const ICONS = { 'house.fill': { d: 'M85…Z' }, 'star': { d: '…' }, … }
 // Missing name -> MISS.icons -> ok:false. No sfsymbols MCP? fall back to the Swift
 // render + place as an Image (see component-fields.md §4). fromSVGPath ignores the SVG
 // fill, so one path recolors freely.
 const ICONS = {}
-const ICON_FILL = '#1E5C8Fff'  // blue/600 accent — the recolor applied in Sketch
 const TRANSPARENT_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+// ===================== Theme (neutral iOS defaults; set SPEC.tint to rebrand) =====================
+const TINT      = SPEC.tint || '#007AFF'           // accent — icons + selected row
+const SELECTION = SPEC.selectionTint || '#E5E5EA'  // selected sidebar row capsule
+const SURFACE   = '#FFFFFF'                          // cards
+const LABEL     = '#1C1C1E'                          // primary text
+const LABEL2    = '#8A8A8E'                          // secondary text / section headers
+const SEPARATOR = '#C6C6C8'                          // hairlines / card borders
+const PILL_BG   = '#FFE5E7'                          // status-pill background
+const PILL_FG   = '#D70015'                          // status-pill text
 
 // ===================== Component names (Light) =====================
 const N = {
@@ -170,7 +183,7 @@ function placeIcon(parent, name, cx, cy, size){
   const s = size / m
   p.frame.width = p.frame.width * s; p.frame.height = p.frame.height * s
   p.frame.x = cx - p.frame.width / 2; p.frame.y = cy - p.frame.height / 2
-  p.style.fills = [{ color: ICON_FILL, fillType: 'Color' }]; p.style.borders = []
+  p.style.fills = [{ color: TINT, fillType: 'Color' }]; p.style.borders = []
   p.name = 'ic/' + name
   return p
 }
@@ -195,7 +208,7 @@ function buildItem(ab, it, y, SEL){
   i.name = 'SB/' + it.title
   if (it.selected && SEL){
     setOv(i, ID.item.state, SEL)
-    setOv(i, ID.item.capsule, it.selTint || '#CCE2F3')
+    setOv(i, ID.item.capsule, it.selTint || SELECTION)
     setOv(i, ID.item.s.title, it.title)
     setOv(i, ID.item.s.glyphColor, '#00000000')
     setOv(i, ID.item.s.subVis, false)
@@ -219,12 +232,12 @@ function buildRow(ab, r, y){
   setOv(row, ID.row.editVis, false)
 }
 function buildBanner(ab, b, x, y, w){
-  rect(ab, 'Banner/Card', x, y, w, 96, '#FFFFFFff', '#D9DEE6ff', 14)
+  rect(ab, 'Banner/Card', x, y, w, 96, SURFACE, SEPARATOR, 14)
   const dot = new sketch.ShapePath({ parent: ab, name: 'Banner/Dot', frame: { x: x + 28, y: y + 31, width: 10, height: 10 }, shapeType: sketch.ShapePath.ShapeType.Oval })
-  dot.style.fills = [{ color: b.dot + 'ff', fillType: 'Color' }]; dot.style.borders = []
-  txt(ab, b.title, x + 50, y + 21, 500, 17, 8, '#11171Fff', 'left')
-  txt(ab, b.mono, x + 50, y + 53, 600, 13, 'mono', '#6B7685ff', 'left')
-  if (b.pill){ rect(ab, 'Banner/Pill', x + w - 84, y + 35, 60, 26, '#F7DEE2ff', null, 13); txt(ab, b.pill, x + w - 84, y + 40, 60, 12, 9, '#B5283Aff', 'center') }
+  dot.style.fills = [{ color: (b.dot || '#34C759'), fillType: 'Color' }]; dot.style.borders = []
+  txt(ab, b.title, x + 50, y + 21, 500, 17, 8, LABEL, 'left')
+  txt(ab, b.mono, x + 50, y + 53, 600, 13, 'mono', LABEL2, 'left')
+  if (b.pill){ rect(ab, 'Banner/Pill', x + w - 84, y + 35, 60, 26, PILL_BG, null, 13); txt(ab, b.pill, x + w - 84, y + 40, 60, 12, 9, PILL_FG, 'center') }
 }
 
 // ============================ build ============================
@@ -259,10 +272,10 @@ function build(){
   let cy = 168
   if (s.banner){ buildBanner(ab, s.banner, 360, 168, 790); cy = 168 + 96 + 28 }
   s.sections.forEach(sec => {
-    const lbl = txt(ab, sec.header, 376, cy, 400, 13, 6, '#6B7685ff', 'left'); lbl.style.kerning = 0.5
+    const lbl = txt(ab, sec.header, 376, cy, 400, 13, 6, LABEL2, 'left'); lbl.style.kerning = 0.5
     cy += 26
     const cardH = sec.rows.length * 52 + 8
-    rect(ab, 'Card/' + sec.header, 360, cy, 790, cardH, '#FFFFFFff', '#D9DEE6ff', 14)
+    rect(ab, 'Card/' + sec.header, 360, cy, 790, cardH, SURFACE, SEPARATOR, 14)
     let ry = cy + 4
     sec.rows.forEach(r => { buildRow(ab, r, ry); ry += 52 })
     cy += cardH + 28
