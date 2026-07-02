@@ -26,7 +26,7 @@ You do **not** invent a screen's composition — you copy Apple's. For **every s
 
 **GATE:** about to create a primitive for a *bar, sidebar, row, field, button, toggle, header, search, menu, sheet, or selection*? **STOP — place the component and override it.** Hand-drawn primitives are only for content with no native component (map, spectrum/waterfall, a bespoke card), and even then inside kit containers. Fill the build checklist in `example-recipes.md` before calling a screen done.
 
-**Don't re-probe what's already frozen.** Override ids are **stable per master**, so once captured they never need re-discovery. Look them up in [`references/override-map.json`](references/override-map.json) instead of calling `get_symbol_overrides` live. For the iPad sidebar-split + grouped-list pattern, skip manual placement entirely: edit the `SPEC` block in [`references/build-screen.js`](references/build-screen.js) and submit it in one `run_code` pass. Reserve live probing for a component not yet in the map (then add it).
+**Compose deliberately — there is no template shortcut.** Every screen is studied and built from its own closest `Examples/…`; pick the components the *content* needs and lay them out for it. Do not reduce screens to filling a fixed data structure — that produces cookie-cutter sidebar-split lists for everything and kills the design work. Read a component's fields live with `get_symbol_overrides` (ids are stable per master, so you can note and reuse them within a build). See [`references/component-fields.md`](references/component-fields.md).
 
 ## Non-negotiable rules (apply to every screen)
 
@@ -73,8 +73,7 @@ The Sketch MCP is configured + approved in this repo (`.mcp.json` + `.claude/set
 | [references/sketch-library.md](references/sketch-library.md) | Exact Apple iOS 27 UI Kit symbol / text-style / layer-style / swatch names |
 | [references/example-recipes.md](references/example-recipes.md) | **The COMPOSE-FROM-EXAMPLE recipes** — pre-dumped composition of Apple's `Examples/…` screens + the screen→example index + the composition-dump helper + build checklist. Load FIRST for any screen build. |
 | [references/component-fields.md](references/component-fields.md) | **Which fields each component exposes and how to set them** (the override map) — load with the recipe when composing; icons-in-components |
-| [references/override-map.json](references/override-map.json) | **Frozen override-id map** for every composable kit component (`component → [{layer, prop, id, default}]`). Look up the exact override id here instead of calling `get_symbol_overrides` live. |
-| [references/build-screen.js](references/build-screen.js) | **The screen builder** — composes a whole iPad sidebar-split screen (status bar + glass sidebar + nav bar + grouped Lists) in one `run_code` pass from a `SPEC` data block, driving fields via frozen ids. Edit `SPEC`, submit to `run_code`. The fast path for this pattern; extend `N`/`ID` from `override-map.json` for others. |
+| [references/override-map.json](references/override-map.json) | Pre-dumped override-id lookup per component (`component → [{layer, prop, id, default}]`). Use it to set a component's fields fast without re-probing (ids are stable per master; `get_symbol_overrides` is the live equivalent). It accelerates **field-setting only** — it does **not** dictate a screen's composition; you still compose deliberately from the Example. |
 | [references/sketch-playbook.md](references/sketch-playbook.md) | Actually building in Sketch via MCP + Apple Design Resources |
 
 When a task spans several of these, load the router mental model first (this file), then only the references the screen actually needs.
