@@ -1,4 +1,4 @@
-# HID — iOS / iPadOS Designer skill
+# HIG — iOS / iPadOS Designer skill
 
 A Claude Code **skill** that lets an agent design iOS & iPadOS app UI/UX to Apple's current
 Human Interface Guidelines and build the mockups in **Sketch** (via the Sketch MCP) using the
